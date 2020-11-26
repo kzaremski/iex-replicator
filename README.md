@@ -7,8 +7,7 @@ Set apikey in config.ini to your IEX private key and then run the script with no
 It will download company and chart data for all (equity) symbols on the IEX cloud API into the data folder.
 
 ###### config.ini example:
-`
-[iexcloud]
-
+```
+[iexcloud]  
 apikey = Tsk_********************************
-`
+```
