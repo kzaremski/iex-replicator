@@ -9,5 +9,6 @@ It will download company and chart data for all (equity) symbols on the IEX clou
 ###### config.ini example:
 `
 [iexcloud]
+
 apikey = Tsk_********************************
 `

@@ -62,6 +62,65 @@ def dlIndex(apikey):
       log("Successfully wrote symbol index to drive", "success")
       return symbols
 
+# Function to download macimum daily chart and write to drive for a symbol
+def dlChart(symbol, apikey):
+  try:
+    response = urllib.request.urlopen("https://" + ("cloud" if apikey[0:3] == "pk_" or apikey[0:3] == "sk_" else "sandbox") + ".iexapis.com/stable/stock/" + symbol.lower() + "/chart/max?token=" + apikey)
+    data = response.read()
+  except:
+    log("Unable to download historical daily chart for " + symbol, "error")
+    return False
+  else:
+    log("Successfully downloaded daily historical chart for " + symbol, "success")
+    # Make a new chart data folder if it does not exist
+    if not os.path.exists('data/chart'):
+      os.makedirs('data/chart')
+    try:
+      # Write the chart to a respective JSON file with the first and last few chars stripped off
+      file = open('./data/chart/' + symbol.lower() + '.json', 'w')
+      file.write(str(data).replace("\\", "")[2:-1])
+      file.close()
+    except:
+      log("Unable to write historical daily chart for " + symbol + " to drive", "error")
+      return False
+    else:
+      log("Successfully wrote historical daily chart for " + symbol + " to drive", "success")
+      return True
+
+# Function to download company info for a symbol and write it to the drive
+def dlCompany(symbol, apikey):
+  try:
+    response = urllib.request.urlopen("https://" + ("cloud" if apikey[0:3] == "pk_" or apikey[0:3] == "sk_" else "sandbox") + ".iexapis.com/stable/stock/" + symbol.lower() + "/company?token=" + apikey)
+    data = response.read()
+  except:
+    log("Unable to download company info for " + symbol, "error")
+    return False
+  else:
+    log("Successfully downloaded company info for " + symbol, "success")
+    # Make a new company info data folder if it does not exist
+    if not os.path.exists('data/company'):
+      os.makedirs('data/company')
+    try:
+      # Write the company info to a respective JSON file with the first and last few chars stripped off
+      file = open('./data/company/' + symbol.lower() + '.json', 'w')
+      file.write(str(data).replace("\\", "")[2:-1])
+      file.close()
+    except:
+      log("Unable to write company info for " + symbol + " to drive", "error")
+      return False
+    else:
+      log("Successfully wrote company info for " + symbol + " to drive", "success")
+      return True
+
+def dlSymbol(symbol, apikey):
+  log("Downloading data for " + symbol)
+  success = dlCompany(symbol, apikey)
+  success = dlChart(symbol, apikey)
+  if success:
+    log("Finished downloading data for " + symbol)
+    return
+  log("Data download for " + symbol + " was not successful", "error")
+
 def main():
   print(colored(" /// IEX Replicator \\\\\\ ", "white", "on_blue"))
   config = configparser.ConfigParser()
@@ -79,6 +138,12 @@ def main():
   # Download a current list of available symbols
   symbolList = dlIndex(apikey)
   if not symbolList: return
+  for symbol in symbolList:
+    dlSymbol(symbol, apikey)
+    # Sleeping to not hit the API call limits
+    sleep(1)
+  print("\n\n\n")
+  log("Finished downloading all historical charts and company information for all ETFs, Common Stock, and Preferred Stock symbols available via. the IEX Cloud API.")
 
 
 if __name__ == "__main__":
